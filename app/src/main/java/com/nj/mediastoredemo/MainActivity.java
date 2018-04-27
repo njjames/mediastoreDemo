@@ -3,12 +3,14 @@ package com.nj.mediastoredemo;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -22,6 +24,7 @@ import java.net.URLConnection;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
+    private static final String TAG = "MainActivity";
     private boolean isUpdate;
 
     private static String path = Environment.getExternalStorageDirectory().getAbsolutePath();
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btn_delete).setOnClickListener(this);
         findViewById(R.id.btn_broadcastupdate_old).setOnClickListener(this);
         findViewById(R.id.btn_broadcastupdate_new).setOnClickListener(this);
+        findViewById(R.id.btn_update3).setOnClickListener(this);
     }
 
     @Override
@@ -62,7 +66,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_broadcastupdate_new:
                 broadcastUpdateNew();
                 break;
+            case R.id.btn_update3:
+                updateByMediaScannerConnection();
+                break;
         }
+    }
+
+    private void updateByMediaScannerConnection() {
+        Log.d(TAG, "updateByMediaScannerConnection: "  + Thread.currentThread().getName());
+        MediaScannerConnection.scanFile(this,
+                new String[]{path + "/" + filename},
+                new String[]{"image/jpeg"},
+                new MediaScannerConnection.OnScanCompletedListener() {
+                    @Override
+                    public void onScanCompleted(final String s, final Uri uri) {
+                        Log.d(TAG, "onScanCompleted: " + Thread.currentThread().getName());
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                Toast.makeText(MainActivity.this, s + "刷新了" + uri, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+        });
     }
 
     private void broadcastUpdateNew() {
